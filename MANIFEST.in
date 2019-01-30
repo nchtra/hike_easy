@@ -1,0 +1,5 @@
+include hike_easy/hike_easy.min.js
+include hike_easy/hike_easy.dev.js
+include hike_easy/metadata.json
+include hike_easy/package.json
+include README.md

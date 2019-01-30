@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "scrape_alltrailsON.py", line 136, in <module>
+    create_db(soup, driver)
+  File "scrape_alltrailsON.py", line 121, in create_db
+    hike_soup = get_all_ratings(driver, hike_url)
+  File "scrape_alltrailsON.py", line 46, in get_all_ratings
+    soup = BeautifulSoup(driver.page_source, 'lxml')
+  File "C:\Users\chtra\Anaconda3.6\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 679, in page_source
+    return self.execute(Command.GET_PAGE_SOURCE)['value']
+  File "C:\Users\chtra\Anaconda3.6\lib\site-packages\selenium\webdriver\remote\webdriver.py", line 321, in execute
+    self.error_handler.check_response(response)
+  File "C:\Users\chtra\Anaconda3.6\lib\site-packages\selenium\webdriver\remote\errorhandler.py", line 242, in check_response
+    raise exception_class(message, screen, stacktrace)
+selenium.common.exceptions.WebDriverException: Message: chrome not reachable
+  (Session info: chrome=71.0.3578.98)
+  (Driver info: chromedriver=2.45.615291 (ec3682e3c9061c10f26ea9e5cdcf3c53f3f74387),platform=Windows NT 10.0.17763 x86_64)
+
