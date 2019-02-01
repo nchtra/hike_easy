@@ -20,6 +20,7 @@ def get_trail_info():
 
 
 def generate_table(topTen, indx='', max_rows=10):
+    inptr=''
     trail_info=get_trail_info()
     colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']
     rec_trails=trail_info.iloc[topTen][['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']]
@@ -32,7 +33,7 @@ def generate_table(topTen, indx='', max_rows=10):
         )
 
     return (
-        # inptr,
+        inptr,
         html.Table(
         # Header
         # [html.Tr([html.Th(col) for col in rec_trails.columns])] +
@@ -77,18 +78,23 @@ uniqtags_nospace=[tag.replace(' ', '') for tag in unique_tags]
 # Main image
 main_img = base64.b64encode(open('./img/img_header.jpg', 'rb').read())
 
-
 app = dash.Dash(__name__)
+
+app.css.append_css({
+   'external_url': (
+       './assets/style_hikeEasy.css'
+   )
+})
 
 app.scripts.config.serve_locally = True
 app.css.config.serve_locally = True
 
 app.layout = html.Div([
 
-    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center'})),
-    html.Div(html.H3('Personalized hiking recommendation system!', style = {'textAlign': 'center'})),
+    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center', 'padding': '1px', 'height': '12px'})),
+    html.Div(html.H3('Personalized hiking recommendation system!', style = {'textAlign': 'center', 'height': '10px'})),
     html.Div(html.Img(id='head-image', src='data:image/jpeg;base64,{}'.format(main_img.decode('ascii')),
-                      style = {'width':'100%', 'padding':'0','margin':'0','box-sizing':'border-box'})),
+                      style = {'width':'100%', 'height': '80%', 'padding':'0','margin':'0','box-sizing':'border-box'})),
 
     html.Div(title='select hike characteristics', id='trail-distance', children=[
     html.H4('Enter distance, elevation for hike'),
