@@ -74,6 +74,14 @@ def parse_meta_data(hike_soup):
     hike_attributes = []
     for tag in tags:
         hike_attributes.append(tag.text)
+
+    # map_img = hike_soup.find_element_by_id('sidebar-map')
+    # print (map_img.get_attribute('src'))
+
+    ## Get location information
+    # location=hike_soup.find_element_by_id('')
+    # latitude=hike_soup.
+
     user_ratings = []
     user_reviews=[]
     reviews_array=[]

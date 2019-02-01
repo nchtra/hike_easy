@@ -10,6 +10,8 @@ from scipy.spatial.distance import pdist, cdist
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, OneHotEncoder ,LabelBinarizer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel
+import base64
+import dash_table
 
 
 def get_trail_info():
@@ -21,20 +23,18 @@ def generate_table(topTen, indx='', max_rows=10):
     trail_info=get_trail_info()
     colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'trail_attributes']
     rec_trails=trail_info.iloc[topTen][['name', 'elevation', 'distance', 'difficulty', 'stars', 'trail_attributes']]
-    # if (indx != ''):
-    #     inp_trail_det=trail_info.iloc[indx][['name', 'elevation', 'distance', 'difficulty', 'stars', 'trail_attributes']]
-    # else:
-    #     inp_trail_det=''
-    #
-    #     print ('index', indx, inp_trail_det)
+
+    if indx != '':
+        inptrail=trail_info.iloc[indx][['name', 'elevation', 'distance', 'difficulty', 'stars', 'trail_attributes']]
+        print ('UI trail: ', inptrail['name'], inptrail['elevation'], inptrail['distance'], inptrail['trail_attributes'])
+
+        tst = html.Table(
+        [html.Tr([html.Th(col) for col in colnames])] +
+        [html.Td(inptrail[col]) for col in rec_trails.columns]
+        )
 
     return (
-
-        # html.P(inp_trail_det),
-        # html.Table(
-        # html.Td(inp_trail_det.iloc[])
-        # )
-
+        # tst,
         html.Table(
         # Header
         # [html.Tr([html.Th(col) for col in rec_trails.columns])] +
@@ -46,18 +46,25 @@ def generate_table(topTen, indx='', max_rows=10):
         )
     )
 
+# def generate_graphics(topTen):
+#     graphical_results.append(html.Tr([
+#         html.Td(html.Iframe(src='https://www.alltrails.com/explore/trail/canada/ontario/'+trail_info.iloc[indx]['urlname'].replace(' ','-')+'?ref=sidebar-view-full-map',width=wig_width, height=wig_height,
+#                             style={'float': 'left', 'border': 'none'}), style={'border-bottom-style':'none'}),
+# #         html.Td(html.Iframe(src='https://www.trailforks.com/widgets/trail/?trailid='+topTen['name']+'&elevation=0&map=1&noheader=1&info=0&photos=1'+'&h='+map_height,width=wig_width, height=wig_height,
+# #                             style={'float': 'left', 'border': 'none'}), style={'border-bottom-style':'none'})
+#         ]))
 
-def get_recommendations_ui(ui_numerical):
+
+
+def get_recommendations_ui(ui_numerical, tagsui=None):
     trail_info=get_trail_info()
     #Numerical data processing
     num=ui_numerical
-    # print (num)
     numerical_data=trail_info[['elevation','distance','stars']]
     # numerical_data=trails[['elevation', 'distance']]
     dist_numerical=euclidean_distances(numerical_data, num)
     dft_sort=pd.DataFrame.from_records(dist_numerical).sort_values(by=0)
     topTen = dft_sort[:10].index.values
-    #Hiking attribute matching
     return topTen
 
 def get_recommendations_name(trail_name):
@@ -71,13 +78,20 @@ def get_recommendations_name(trail_name):
     sorted_scores=sorted(similarity_scores, key=lambda x:x[1], reverse=True)
     sorted_scores=sorted_scores[1:11]
     topTen=[i[0] for i in sorted_scores]
-    # return(topTen)
     return(topTen, index)
+
+# Create graphical Output
 
 
 trail_info=get_trail_info()
 trail_names=trail_info['name'].str.lower()
-unique_tags=[tag for tags in trail_info.trail_attributes for tag in tags]
+unique_tags= pd.Series([tag for tags in trail_info.trail_attributes for tag in tags]).unique()
+unique_tags=sorted(unique_tags)
+uniqtags_nospace=[tag.replace(' ', '') for tag in unique_tags]
+
+# Main image
+main_img = base64.b64encode(open('./img/img_header.jpg', 'rb').read())
+
 
 app = dash.Dash(__name__)
 
@@ -86,17 +100,19 @@ app.css.config.serve_locally = True
 
 app.layout = html.Div([
 
+    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center'})),
+    # html.Div(html.H3('Hiking recommondations tailored to your needs!', style = {'textAlign': 'center'})),
+    html.Div(html.H3('Personalized hiking recommendation system!', style = {'textAlign': 'center'})),
+    html.Div(html.Img(id='head-image', src='data:image/jpeg;base64,{}'.format(main_img.decode('ascii')),
+                      style = {'width':'100%', 'padding':'0','margin':'0','box-sizing':'border-box'})),
+
     html.Div(title='select hike characteristics', id='trail-distance', children=[
-    html.P('Enter distance, elevation and star rating for hike'),
+    html.H4('Enter distance, elevation for hike'),
     dcc.Input(id='input-elevation',type='text', placeholder='Enter elevation (in m))'),
     dcc.Input(id='input-distance',type='text', placeholder='Enter distance (in KM))'),
-    dcc.Dropdown(
-    id='dropdown-tags',
-    options=[{'label':name, 'value':name} for name in unique_tags],
-    multi=True
-    ),
 
     html.Button(id='submit-button', n_clicks=0,children='Submit'),
+    html.Button(id='reset-button', n_clicks=0,children='reset'),
 
     html.Div(title='select trail name', id='trail_name',children=[
     html.P('Or enter trail name'),
@@ -114,31 +130,56 @@ app.layout = html.Div([
 ])
 
 # Function to reset the trail selection dropdown
-@app.callback(Output('input-elevation', 'value'), [Input('submit-button', 'n_clicks')])
-def reset_ifield(click):
-    if click !=0:
-        print (click)
-        return None
+
+@app.callback(Output('input-elevation', 'value'),
+[Input('reset-button', 'n_clicks')]
+)
+def reset(click):
+    if (click !=0):
+        return ('')
+
+@app.callback(Output('input-distance', 'value'),
+[Input('reset-button', 'n_clicks')]
+)
+def reset(click):
+    if (click !=0):
+        return ('')
+
+# @app.callback(Output('recommendations-ui', 'children'),
+# [Input('reset-button', 'n_clicks')]
+# )
+# def reset(click):
+#     if (click !=0):
+#         return ('')
+# def reset_ifield(click):
+#     if click !=0:
+#         # print (click)
+#         return None
 # @app.callback(Output('dropdown-trailname','value'), [Input('dropdown-trailname', 'options')])
 # def reset_dropdown(ddown):
 #     return ''
 
 # Callback for user input based recommendations
 @app.callback(Output('recommendations-ui', 'children'),
-[Input('submit-button','n_clicks')],
+[Input('submit-button','n_clicks'),
+Input('reset-button', 'n_clicks')],
 [State('input-elevation','value'),
 State('input-distance','value'),
+# State('dropdown-tags','value')
 ])
-def ui_output(n_clicks, elev, dist):
+def ui_output(subclick, resetclick, elev, dist): #, tagsui):
     ui_numerical=[[]]
     recs=[]
+
     if dist != None:
         try:
             ui_numerical=[[float(elev), float(dist), 5.0]]
             recs=get_recommendations_ui(ui_numerical)
             return (generate_table(recs))
-        except ValueError:
-            return ('Please enter values')
+        except ValueError or TypeError:
+            return ('  ')
+    else:
+        return ('')
 
 # Callback for trail name based recommendations
 @app.callback(Output('recommendations-name','children'),
