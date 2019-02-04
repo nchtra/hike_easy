@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, On
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import base64
-import dash_table
+# import dash_table
 
 
 def get_trail_info():
@@ -22,7 +22,7 @@ def get_trail_info():
 def generate_table(topTen, indx='', max_rows=10):
     inptr=''
     trail_info=get_trail_info()
-    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']
+    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags']
     rec_trails=trail_info.iloc[topTen][['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']]
 
     if indx != '':
@@ -45,6 +45,36 @@ def generate_table(topTen, indx='', max_rows=10):
         )
     )
 
+def generate_table_ui(topTen, max_rows=10):
+    trail_info=get_trail_info()
+    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags']
+    rec_trails=trail_info.iloc[topTen][['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']]
+
+    table_ui = html.Table([html.Tr([html.Th(col) for col in colnames])] +
+    # Body
+    [html.Tr([
+        html.Td(rec_trails.iloc[i][col]) for col in rec_trails.columns
+    ]) for i in range(min(len(rec_trails), max_rows))])
+
+    return(table_ui)
+
+
+
+def generate_graphical_output(topTen, indx):
+    all_trails = get_trail_info()
+    trail_rec = all_trails.iloc[topTen][['name']] #, 'elevation', 'distance', 'difficulty', 'stars', 'tags_str']]
+    iwidth = 1200
+    iheight = 300
+
+    #Use input trail
+    # print (all_trails.iloc[indx])
+    user_trail = all_trails.iloc[indx]['urlname']
+    print (user_trail)
+    url_link= str('https://www.alltrails.com/explore/trail/canada/ontario/' + str(user_trail)) # + str('?ref=sidebar-static-map'))
+    print ('url_link: ', url_link)
+    page = html.Iframe(src=url_link, width=iwidth, height=iheight)
+    return(page)
+
 def get_recommendations_ui(ui_numerical, tagsui=None):
     trail_info=get_trail_info()
     #Numerical data processing
@@ -62,6 +92,7 @@ def get_recommendations_name(trail_name):
     index=indices[trail_name]
     #Extract pairwise similarity score with all trails for the input trail
     similarity_scores = list(enumerate(cosine_sim[index]))
+    # print ('similarity scores: ', similarity_scores)
     #Sort scores to extract the top ranked trails
     sorted_scores=sorted(similarity_scores, key=lambda x:x[1], reverse=True)
     sorted_scores=sorted_scores[1:11]
@@ -80,21 +111,21 @@ main_img = base64.b64encode(open('./img/img_header.jpg', 'rb').read())
 
 app = dash.Dash(__name__)
 
-app.css.append_css({
-   'external_url': (
-       './assets/style_hikeEasy.css'
-   )
-})
+# app.css.append_css({
+#    'external_url': (
+#        'assets/style_hikeEasy.css'
+#    )
+# })
 
 app.scripts.config.serve_locally = True
 app.css.config.serve_locally = True
 
 app.layout = html.Div([
 
-    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center', 'padding': '1px', 'height': '12px'})),
+    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center', 'padding': '1px', 'height': '12px', 'margin-top': '-10px'})),
     html.Div(html.H3('Personalized hiking recommendation system!', style = {'textAlign': 'center', 'height': '10px'})),
     html.Div(html.Img(id='head-image', src='data:image/jpeg;base64,{}'.format(main_img.decode('ascii')),
-                      style = {'width':'100%', 'height': '80%', 'padding':'0','margin':'0','box-sizing':'border-box'})),
+                      style = {'width':'100%', 'height': '200px', 'padding':'0','margin':'0','box-sizing':'border-box'})),
 
     html.Div(title='select hike characteristics', id='trail-distance', children=[
     html.H4('Enter distance, elevation for hike'),
@@ -112,6 +143,9 @@ app.layout = html.Div([
     ]),
 
     html.Br(),
+
+    # html.Iframe(src='https://www.alltrails.com/explore/trail/canada/ontario/nassagaweya-and-bruce-trail-loop-from-rattlesnake-point?ref=sidebar-view-full-map',
+    # width=1000, height=300), #style={'float': 'left', 'border': 'none'}),
 
     html.Div(id='recommendations-ui', style={'display':'block'}),
     html.Div(id='trail-name-details', style={'display':'block'}),
@@ -149,7 +183,8 @@ def ui_output(subclick, resetclick, elev, dist):
         try:
             ui_numerical=[[float(elev), float(dist), 5.0]]
             recs=get_recommendations_ui(ui_numerical)
-            return (generate_table(recs))
+            # return (generate_table(recs))
+            return (generate_table_ui(recs))
         except ValueError or TypeError:
             return ('  ')
     else:
@@ -163,7 +198,12 @@ def getrec(trail_name):
     index=''
     if trail_name != None:
         recs, index=get_recommendations_name(trail_name)
-    return (generate_table(recs, index))
+        # print (recs, index)
+        # generate_graphical_output(recs, index)
+    # return (generate_table(recs, index))
+        return (generate_graphical_output(recs, index))
+    else:
+        return ('  ')
 
 if __name__ == '__main__':
     app.run_server(debug=True)

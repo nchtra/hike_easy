@@ -1,3 +1,11 @@
 # dash is required to call `build:py`
+base64
 dash>=0.31.0
 dash-html-components
+dash.dependencies
+dash_core_components
+gunicorn
+numpy
+pandas
+scipy
+sklearn
