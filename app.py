@@ -1,4 +1,4 @@
-import hike_easy
+# import hike_easy
 import dash
 from dash.dependencies import Input, Output,State
 import dash_html_components as html
