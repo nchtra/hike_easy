@@ -110,14 +110,15 @@ main_img = base64.b64encode(open('./img/img_header.jpg', 'rb').read())
 
 app = dash.Dash(__name__)
 
+server = app.server
+
+app.scripts.config.serve_locally = True
+app.css.config.serve_locally = True
 # app.css.append_css({
 #    'external_url': (
 #        'assets/style_hikeEasy.css'
 #    )
 # })
-
-app.scripts.config.serve_locally = True
-app.css.config.serve_locally = True
 
 app.layout = html.Div([
 
