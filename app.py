@@ -17,13 +17,16 @@ def get_trail_info():
     trail_dat1=pd.read_pickle('./data/alltrails_ontario_curated.pkl')
     reviews_dat=pd.read_pickle('./data/alltrails_ontario_review_keywords.pkl')
     trail_dat=pd.concat([trail_dat1, reviews_dat], axis=1)
+    trail_dat.columns = ['difficulty', 'distance', 'elevation', 'name', 'nreviews', 'review', \
+                        'route_type', 'stars', 'trail_attributes', 'tagstr', 'log_elevation', \
+                        'log_distance', 'trailName', 'urlname', 'features', 'keywords']
     return trail_dat
 
 
 # Create dash table based on user input TRAIL
 def generate_dash_table_tname(rec_trails, indx=''):
     trail_info=get_trail_info()
-    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str', 'review_keywords1']
+    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'features', 'keywords']
 
     if indx != '':
         inptrail = trail_info.iloc[indx][colnames]
@@ -35,7 +38,6 @@ def generate_dash_table_tname(rec_trails, indx=''):
         text-overflow: inherit;'}],
     columns=[{'name':i, 'id': i} for i in colnames],
     data=rec_trails.to_dict('rows'),
-    # style_cell={'textAlign': 'left', 'padding': '5px'},
     style_as_list_view=True, sorting=True, sorting_type="multi",
     style_header={
         'backgroundColor': 'white',
@@ -44,9 +46,9 @@ def generate_dash_table_tname(rec_trails, indx=''):
     style_cell_conditional=[
         {'if': {'column_id': 'name'},
          'width': '20%'},
-        {'if': {'column_id': 'tags_str'},
+        {'if': {'column_id': 'features'},
          'width': '35%'},
-        {'if': {'column_id': 'review_keywords1'},
+        {'if': {'column_id': 'keywords'},
           'width': '15%'},
     ],
     )
@@ -64,7 +66,7 @@ def get_recommendations_ui(ui_numerical, tagsui):
     dfnum_sort=pd.DataFrame.from_records(num_eucdist).sort_values(by=0)
     topTen = dfnum_sort[:10].index.values
     #Create the final set of trails
-    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str', 'review_keywords1']
+    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'features', 'keywords']
     rec_trails=trail_info.iloc[topTen][colnames]
     return rec_trails
 
@@ -80,7 +82,7 @@ def get_recommendations_tname(trail_name):
     sorted_scores=sorted_scores[1:11]
     topTen=[i[0] for i in sorted_scores]
     #Create the final set of trails
-    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'tags_str', 'review_keywords1']
+    colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'features', 'keywords']
     rec_trails=trail_info.iloc[topTen][colnames]
     return (rec_trails, index)
 
@@ -115,30 +117,33 @@ app.css.config.serve_locally = True
 app.layout = html.Div([
 
     # HEADING TEXT AND IMAGE
-    html.Div(html.H1('Hike Easy', style = {'textAlign': 'center', 'padding': '1px',
-    'height': '12px', 'margin-top': '-5px'})),
-    html.Div(html.H4('Personalized hiking recommendation system!',
-    style = {'textAlign': 'center', 'height': '10px', 'margin-top': '5px'})),
+
+    html.Div(html.H1('HikeEasy', style = {'textAlign': 'center', 'padding': '1px',
+    'height': '12px', 'fontSize': 50, 'margin-top': '-8px'})),
+
+    html.Div(html.H4('Leading you to the right path',
+    style = {'textAlign': 'center', 'height': '14px', 'margin-top': '10px', 'padding': '10px', 'fontSize': 20})),
+
     html.Div(html.Img(id='head-image',
     src='data:image/jpeg;base64,{}'.format(main_img.decode('ascii')),
     style = {'width':'100%', 'height': '200px', 'padding':'0','margin':'0','box-sizing':'border-box'})),
 
-    html.Div(title='select trail name', id='trail_name',children=[
-    html.H4('Enter trail name'),
+    html.Div(title='Select of enter trail name', id='trail_name',children=[
+    html.H4('Enter trail name', style={'fontSize': 20}),
     dcc.Dropdown(id='dropdown-trailname',
-    options=[{'label':name, 'value':name} for name in trail_names])
+    options=[{'label':name, 'value':name} for name in trail_names], style = {'width': '55%'})
     ]),
 
-    html.H4('or'),
+    html.H4('or', style={'fontSize': 20}),
 
     html.Div(title='select hike characteristics', id='trail-distance', children=[
-    html.H4('Enter distance, elevation for hike'),
-    dcc.Input(id ='input-elevation',type='text', placeholder='Enter elevation (in m))'),
-    dcc.Input(id ='input-distance',type='text', placeholder='Enter distance (in KM))'),
-    dcc.Dropdown(id = 'dropdown-tags',
+    html.H4('Select trail features', style={'fontSize': 20}),
+    dcc.Input(id ='input-elevation',type='text', placeholder='Enter elevation (in m))', style = {'margin-right': '5px'}), # style={'float':'left'}),
+    dcc.Input(id ='input-distance',type='text', placeholder='Enter distance (in km))'), # style={'float':'left'}),
+    dcc.Dropdown(id = 'dropdown-tags', style = {'width': '55%', 'margin-top': '5px', 'margin-bottom': '5px'},
     options = [{'label': name, 'value': name.replace(' ', '')} for name in unique_tags], multi=True),
 
-    html.Button(id='submit-button', n_clicks=0,children='Submit'),
+    html.Button(id='submit-button', n_clicks=0,children='Submit', style = {'margin-right': '5px'}),
     html.Button(id='reset-button', n_clicks=0,children='reset'),
 
     ]),
@@ -150,7 +155,9 @@ app.layout = html.Div([
     html.Br(), html.Br(),
     html.Div(id='recommendations-ui', style={'display':'block'}),
 
-])
+    ], style = {'background-color': 'rgba(102, 102, 255, 0.1)', 'margin': '-5px'}) # 'background-image': 'url(./img/bg_img.png)',
+
+
 
 # Dash app callbacks
 # Functions to reset the trail selection dropdown
