@@ -17,5 +17,7 @@ The analysis pipeline involved 1) web scraping and data cleaning, 2) data analys
 
 # Web app for hiking trail recommendations
 
+Web was app created using Dash by Plotly and is hosted on Heroku. The main code for the app is app.py.
+
 ![HikeEasy](./img/webapp.PNG)
 Link to app [here](https://hike-easy.herokuapp.com/)
