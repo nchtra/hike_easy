@@ -13,9 +13,9 @@ Hiking trails for Ontario, Canada were obtained from alltrials.com
 
 The analysis pipeline involved 1) web scraping and data cleaning, 2) data analysis involving numerical, categorical and text features, 3) web app designed using Dash by Plotly and hosted on Heroku.
 
-[[./img/analysis_pipeline.PNG|analysis_pipeline]]
+[analysis_pipeline](./img/analysis_pipeline.PNG)
 
 # Web app for hiking trail recommendations
 
-[[./img/webapp.PNG|HikeEasy]]
+[HikeEasy](./img/webapp.PNG)
 Link to app [here](https://hike-easy.herokuapp.com/)
