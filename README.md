@@ -21,4 +21,5 @@ I scraped all trails in Ontario, Canada from alltrails.com using used Selenium a
 Web was app created using Dash by Plotly and is hosted on Heroku. The main code for the app is app.py.
 
 ![HikeEasy](./img/hike_easy.gif)
+
 Link to app [here](https://hike-easy.herokuapp.com/)
