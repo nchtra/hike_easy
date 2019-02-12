@@ -5,19 +5,20 @@ HikeEasy is a hiking trail recommendation system that provides recommendations b
 A google slide presentation for this may be found [here](https://bit.ly/2RSYrmv).
 The web app for this recommender may be found [here](https://hike-easy.herokuapp.com/).
 
+## Analysis pipeline
+The analysis pipeline involved 1) web scraping and data cleaning, 2) data analysis involving numerical, categorical and text features, 3) web app designed using Dash by Plotly and hosted on Heroku.
+
+![analysis_pipeline](./img/analysis_pipeline.PNG)
+
 ## Data
 
 Hiking trails for Ontario, Canada were obtained from alltrials.com
 
-## Analysis pipeline
-
-The analysis pipeline involved 1) web scraping and data cleaning, 2) data analysis involving numerical, categorical and text features, 3) web app designed using Dash by Plotly and hosted on Heroku.
-
-![analysis_pipeline](./img/analysis_pipeline.PNG)
+I scraped all trails in Ontario, Canada from alltrails.com using used Selenium and Beautifulsoup. The scraped data was saved as a Mongo database and subsequently converted to a pandas dataframe for further analyses.
 
 ## Web app for hiking trail recommendations
 
 Web was app created using Dash by Plotly and is hosted on Heroku. The main code for the app is app.py.
 
-![HikeEasy](./img/webapp.PNG)
+![HikeEasy](./img/hike_easy.gif)
 Link to app [here](https://hike-easy.herokuapp.com/)
