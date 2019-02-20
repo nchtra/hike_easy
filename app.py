@@ -12,19 +12,29 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import base64
 
-# Function to get the trail dataset
+# ################################################### #
+# CUSTOM FUNCTIONS FOR RECOMMENDATIONS
+# ################################################### #
+
 def get_trail_info():
-    trail_dat1=pd.read_pickle('./data/alltrails_ontario_curated.pkl')
-    reviews_dat=pd.read_pickle('./data/alltrails_ontario_review_keywords.pkl')
-    trail_dat=pd.concat([trail_dat1, reviews_dat], axis=1)
-    trail_dat.columns = ['difficulty', 'distance', 'elevation', 'name', 'nreviews', 'review', \
-                        'route_type', 'stars', 'trail_attributes', 'tagstr', 'log_elevation', \
-                        'log_distance', 'trailName', 'urlname', 'features', 'keywords']
+    '''
+    Function to read the Ontario hiking trail dataset from a pickle file
+    '''
+    trail_dat=pd.read_pickle('./data/alltrails_ontario_curated_0219.pkl')
+    # reviews_dat=pd.read_pickle('./data/alltrails_ontario_review_keywords.pkl')
+    # print (reviews_dat.head())
+    # trail_dat=pd.concat([trail_dat1, reviews_dat], axis=1)
+    trail_dat.columns = ['difficulty', 'distance', 'elevation', 'name', \
+                        'route_type', 'stars', 'trail_attributes', 'trailName', 'tagstr', \
+                        'tags_str', 'lname', 'features', 'keywords_list', 'keywords']
     return trail_dat
 
 
 # Create dash table based on user input TRAIL
 def generate_dash_table_tname(rec_trails, indx=''):
+    '''
+    Create a dash table based on the input trail selected by user
+    '''
     trail_info=get_trail_info()
     colnames=['name', 'elevation', 'distance', 'difficulty', 'stars', 'features', 'keywords']
 
@@ -36,18 +46,23 @@ def generate_dash_table_tname(rec_trails, indx=''):
         'selector': '.dash-cell div.dash-cell-value',
         'rule': 'display: inline; white-space: inherit; overflow: inherit;\
         text-overflow: inherit;'}],
-    columns=[{'name':i, 'id': i} for i in colnames],
+    columns=[{'name':i.capitalize(), 'id': i} for i in colnames],
     data=rec_trails.to_dict('rows'),
     style_as_list_view=True, sorting=True, sorting_type="multi",
     style_header={
         'backgroundColor': 'white',
-        'fontWeight': 'bold'
+        'fontWeight': 'bold',
+        'fontSize': 20
+    },
+    style_cell={
+        'textAlign': 'left',
+        'fontSize':12
     },
     style_cell_conditional=[
         {'if': {'column_id': 'name'},
          'width': '20%'},
         {'if': {'column_id': 'features'},
-         'width': '35%'},
+         'width': '25%'},
         {'if': {'column_id': 'keywords'},
           'width': '15%'},
     ],
@@ -56,9 +71,13 @@ def generate_dash_table_tname(rec_trails, indx=''):
 
 # Generate top ten similar trails based on user input features
 def get_recommendations_ui(ui_numerical, tagsui):
+    '''
+    Create dash table based on trail features selected by user. Trail features
+    include hike distance, elevation and text trail features
+    '''
     trail_info=get_trail_info()
     ui_tagsarr=tagsui.split(' ')
-    trail_info=trail_info[trail_info.tagstr.str.contains('|'.join(ui_tagsarr))]
+    trail_info=trail_info[trail_info.features.str.contains('|'.join(ui_tagsarr))]
     # Euclidean distance measure for numerical data only!
     num=ui_numerical
     numerical_data=trail_info[['elevation','distance']]
@@ -72,8 +91,12 @@ def get_recommendations_ui(ui_numerical, tagsui):
 
 # Generate top ten similar hikes based on trail selected by user
 def get_recommendations_tname(trail_name):
+    '''
+    Create a list of top 10 recommendations based on cosine similarity score or
+    Euclidean distance measures
+    '''
     trail_info=get_trail_info()
-    cosine_sim=np.loadtxt('./data/cosine_sim2.dat')
+    cosine_sim=np.loadtxt('./data/cosine_sim_allfeat3.dat')
     indices=pd.Series(trail_info.index, index=trail_info['trailName'])
     index=indices[trail_name]
     #Extract pairwise similarity score with all trails for the input trail
@@ -88,13 +111,12 @@ def get_recommendations_tname(trail_name):
 
 
 # ################################################### #
-# END FUNCTIONS, BEGIN MAIN CONTENT
+# TRAIL CONTENTS TO BE USED FOR MENU OPTIONS IN APP
 # ################################################### #
 
 #This is initial data I need for the dropdowns
 trail_info=get_trail_info()
 trail_names=trail_info['name'].str.lower()
-trail_names=trail_names.drop([0])
 unique_tags = ['dogs on leash', 'wheelchair friendly', 'kid friendly', \
  'hiking', 'mountain biking', 'trail running', 'forest', \
  'fishing', 'horseback riding', 'bird watching', 'lake', 'river', 'waterfall',\
@@ -104,11 +126,17 @@ unique_tags = ['dogs on leash', 'wheelchair friendly', 'kid friendly', \
 unique_tags=sorted(unique_tags)
 uniqtags_nospace=[tag.replace(' ', '') for tag in unique_tags]
 
+# ################################################### #
+# END FUNCTIONS, BEGIN MAIN CONTENT
+# ################################################### #
+
 # Main image
 main_img = base64.b64encode(open('./img/img_header.jpg', 'rb').read())
 
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
 #Main Dash app section
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
 app.scripts.config.serve_locally = True
 app.css.config.serve_locally = True
@@ -119,10 +147,10 @@ app.layout = html.Div([
     # HEADING TEXT AND IMAGE
 
     html.Div(html.H1('HikeEasy', style = {'textAlign': 'center', 'padding': '1px',
-    'height': '12px', 'fontSize': 50, 'margin-top': '-8px'})),
+    'fontSize': 60, 'margin-bottom': '10px'})),
 
     html.Div(html.H4('Leading you to the right path',
-    style = {'textAlign': 'center', 'height': '14px', 'margin-top': '10px', 'padding': '10px', 'fontSize': 20})),
+    style = {'textAlign': 'center', 'margin-top': '10px', 'fontSize': 20})),
 
     html.Div(html.Img(id='head-image',
     src='data:image/jpeg;base64,{}'.format(main_img.decode('ascii')),
@@ -131,7 +159,7 @@ app.layout = html.Div([
     html.Div(title='Select of enter trail name', id='trail_name',children=[
     html.H4('Enter trail name', style={'fontSize': 20}),
     dcc.Dropdown(id='dropdown-trailname',
-    options=[{'label':name, 'value':name} for name in trail_names], style = {'width': '55%'})
+    options=[{'label':name, 'value':name} for name in trail_names], style = {'width': '51%'})
     ]),
 
     html.H4('or', style={'fontSize': 20}),
@@ -140,7 +168,7 @@ app.layout = html.Div([
     html.H4('Select trail features', style={'fontSize': 20}),
     dcc.Input(id ='input-elevation',type='text', placeholder='Enter elevation (in m))', style = {'margin-right': '5px'}), # style={'float':'left'}),
     dcc.Input(id ='input-distance',type='text', placeholder='Enter distance (in km))'), # style={'float':'left'}),
-    dcc.Dropdown(id = 'dropdown-tags', style = {'width': '55%', 'margin-top': '5px', 'margin-bottom': '5px'},
+    dcc.Dropdown(id = 'dropdown-tags', style = {'width': '51%', 'margin-top': '5px', 'margin-bottom': '5px'},
     options = [{'label': name, 'value': name.replace(' ', '')} for name in unique_tags], multi=True),
 
     html.Button(id='submit-button', n_clicks=0,children='Submit', style = {'margin-right': '5px'}),
