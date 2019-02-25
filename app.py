@@ -20,7 +20,7 @@ def get_trail_info():
     '''
     Function to read the Ontario hiking trail dataset from a pickle file
     '''
-    trail_dat=pd.read_pickle('./data/alltrails_ontario_curated_0219.pkl')
+    trail_dat=pd.read_pickle('./data/alltrails_ontario_curated.pkl')
     # reviews_dat=pd.read_pickle('./data/alltrails_ontario_review_keywords.pkl')
     # print (reviews_dat.head())
     # trail_dat=pd.concat([trail_dat1, reviews_dat], axis=1)
@@ -64,7 +64,7 @@ def generate_dash_table_tname(rec_trails, indx=''):
         {'if': {'column_id': 'features'},
          'width': '25%'},
         {'if': {'column_id': 'keywords'},
-          'width': '15%'},
+          'width': '20%'},
     ],
     )
     return(toptrails)
